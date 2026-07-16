@@ -1,0 +1,83 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    volumes:
+      - /data/modelos:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_KEEP_ALIVE=-1
+      - OLLAMA_CONTEXT_LENGTH=8192
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_MODELS=/root/.ollama/models
+      - OLLAMA_DEBUG=false
+      - OLLAMA_LOGGING_LEVEL=info
+    deploy:
+      resources:
+        reservations:
+          memory: 8g          # Memoria mínima reservada (equivalente a mem_reservation)
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+        limits:
+          memory: 32g         # Límite máximo de RAM (equivalente a mem_limit)
+          cpus: '4'           # Límite máximo de CPUs (opcional)
+            #healthcheck:
+            #test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+            #interval: 30s
+            #timeout: 10s
+            #retries: 3
+            #start_period: 40s
+    networks:
+      - ai-network
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+      #depends_on:
+      #ollama:
+      #  condition: service_healthy
+    ports:
+      - "3000:8080"
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+        #- WEBUI_AUTH=True
+        #- WEBUI_SECRET_KEY=tu_clave_secreta_aqui  # ¡CAMBIA ESTO!
+        #- WEBUI_NAME=Mi Asistente IA
+      - CHUNK_SIZE=1000
+      - CHUNK_OVERLAP=50
+      - RAG_TOP_K=3
+      - UPLOAD_DIR=/app/backend/uploads
+      - VECTOR_DB_DIR=/app/backend/vectordb
+      - DEFAULT_MODELS=deepseek-r1:7b
+        #- DEFAULT_MODELS=qwen2.5-coder:7b
+    volumes:
+      - /data/conversaciones:/app/backend/data
+      - /data/embeddings:/app/backend/uploads
+      - /data/vectordb:/app/backend/vectordb
+    deploy:
+      resources:
+        reservations:
+          memory: 2g
+        limits:
+          memory: 8g
+            #healthcheck:
+            #test: ["CMD", "ollama", "list"]
+            #interval: 30s
+            #timeout: 10s
+            #retries: 3
+            #start_period: 60s
+    networks:
+      - ai-network
+
+networks:
+  ai-network:
+    driver: bridge
+    name: ai-network
