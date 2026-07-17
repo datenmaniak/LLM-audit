@@ -1,4 +1,4 @@
-¿Usas IA para resolver problemas técnicos? Un consejo: **no confíes en una sola respuesta**. 🤖⚙️
+# ¿Usas IA para resolver problemas técnicos? Un consejo: **no confíes en una sola respuesta**. 🤖⚙️
 
 He cambiado mi forma de trabajar con modelos de lenguaje. En lugar de lanzar prompts improvisados, ahora utilizo **documentos estructurados en Markdown** como base de mis consultas. Este cambio me permite:
 
